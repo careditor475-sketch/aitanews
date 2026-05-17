@@ -1,0 +1,310 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { ArrowLeft, LogOut, Upload } from "lucide-react";
+
+export const Route = createFileRoute("/admin")({
+  head: () => ({ meta: [{ title: "Admin — News Feed" }] }),
+  component: AdminPage,
+});
+
+function AdminPage() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      checkAdmin(s);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      checkAdmin(data.session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function checkAdmin(s: Session | null) {
+    if (!s) {
+      setIsAdmin(false);
+      setChecking(false);
+      return;
+    }
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", s.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    setIsAdmin(!!data);
+    setChecking(false);
+  }
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Toaster richColors />
+      {!session ? <LoginForm /> : !isAdmin ? <NotAdmin /> : <PostComposer />}
+    </div>
+  );
+}
+
+function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [busy, setBusy] = useState(false);
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + "/admin" },
+        });
+        if (error) throw error;
+        toast.success("Account created — you can now sign in.");
+        setMode("signin");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
+      <Link
+        to="/"
+        className="mb-6 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="mr-1 h-4 w-4" /> Back to feed
+      </Link>
+      <Card className="p-8">
+        <h1 className="text-2xl font-bold text-foreground">Admin access</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {mode === "signin"
+            ? "Sign in to post updates."
+            : "Create the admin account. The first account becomes the admin."}
+        </p>
+
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            />
+          </div>
+          <Button type="submit" disabled={busy} className="w-full">
+            {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+          </Button>
+        </form>
+
+        <button
+          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+          className="mt-4 w-full text-sm text-muted-foreground hover:text-foreground"
+        >
+          {mode === "signin" ? "Need to create the admin account?" : "Already have an account? Sign in"}
+        </button>
+      </Card>
+    </div>
+  );
+}
+
+function NotAdmin() {
+  return (
+    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
+      <h1 className="text-2xl font-bold text-foreground">Not authorized</h1>
+      <p className="mt-2 text-muted-foreground">This account does not have admin access.</p>
+      <div className="mt-6 flex justify-center gap-2">
+        <Button asChild variant="outline">
+          <Link to="/">Back to feed</Link>
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={async () => {
+            await supabase.auth.signOut();
+          }}
+        >
+          Sign out
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PostComposer() {
+  const navigate = useNavigate();
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [video, setVideo] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function uploadFile(file: File, kind: "image" | "video"): Promise<string> {
+    const ext = file.name.split(".").pop();
+    const path = `${kind}s/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage.from("media").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+    if (error) throw error;
+    const { data } = supabase.storage.from("media").getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !body.trim()) {
+      toast.error("Title and text are required.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const image_url = image ? await uploadFile(image, "image") : null;
+      const video_url = video ? await uploadFile(video, "video") : null;
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("posts").insert({
+        title: title.trim(),
+        body: body.trim(),
+        image_url,
+        video_url,
+        author_id: u.user?.id ?? null,
+      });
+      if (error) throw error;
+      toast.success("Posted to the feed.");
+      setTitle("");
+      setBody("");
+      setImage(null);
+      setVideo(null);
+      setTimeout(() => navigate({ to: "/" }), 800);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to post");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl px-6 py-10">
+      <header className="mb-8 flex items-center justify-between">
+        <div>
+          <Link
+            to="/"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" /> View feed
+          </Link>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">New post</h1>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={async () => {
+            await supabase.auth.signOut();
+          }}
+        >
+          <LogOut className="mr-2 h-4 w-4" /> Sign out
+        </Button>
+      </header>
+
+      <Card className="p-8">
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={200}
+              required
+              placeholder="A short, clear headline"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="body">News text</Label>
+            <Textarea
+              id="body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              maxLength={5000}
+              required
+              rows={8}
+              placeholder="Write the story…"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="image">
+                <Upload className="mr-1 inline h-4 w-4" /> Photo (optional)
+              </Label>
+              <Input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="video">
+                <Upload className="mr-1 inline h-4 w-4" /> Video (optional)
+              </Label>
+              <Input
+                id="video"
+                type="file"
+                accept="video/*"
+                onChange={(e) => setVideo(e.target.files?.[0] ?? null)}
+              />
+            </div>
+          </div>
+
+          <Button type="submit" disabled={busy} className="w-full" size="lg">
+            {busy ? "Publishing…" : "Publish to feed"}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}
