@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowLeft, LogOut, Upload } from "lucide-react";
+import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — News Feed" }] }),
@@ -174,12 +174,16 @@ function NotAdmin() {
 }
 
 function PostComposer() {
-  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [publishedPostId, setPublishedPostId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://medportaltest.lovable.app";
+  const shareUrl = publishedPostId ? `${origin}/news/${publishedPostId}` : "";
 
   async function uploadFile(file: File, kind: "image" | "video"): Promise<string> {
     const ext = file.name.split(".").pop();
@@ -204,25 +208,98 @@ function PostComposer() {
       const image_url = image ? await uploadFile(image, "image") : null;
       const video_url = video ? await uploadFile(video, "video") : null;
       const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase.from("posts").insert({
-        title: title.trim(),
-        body: body.trim(),
-        image_url,
-        video_url,
-        author_id: u.user?.id ?? null,
-      });
+      const { data: inserted, error } = await supabase
+        .from("posts")
+        .insert({
+          title: title.trim(),
+          body: body.trim(),
+          image_url,
+          video_url,
+          author_id: u.user?.id ?? null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
       toast.success("Posted to the feed.");
+      setPublishedPostId(inserted.id);
       setTitle("");
       setBody("");
       setImage(null);
       setVideo(null);
-      setTimeout(() => navigate({ to: "/" }), 800);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to post");
     } finally {
       setBusy(false);
     }
+  }
+
+  async function handleCopy() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link.");
+    }
+  }
+
+  if (publishedPostId) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-10">
+        <header className="mb-8 flex items-center justify-between">
+          <div>
+            <Link
+              to="/"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="mr-1 h-4 w-4" /> View feed
+            </Link>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">Published!</h1>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              await supabase.auth.signOut();
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" /> Sign out
+          </Button>
+        </header>
+
+        <Card className="p-8">
+          <div className="text-center space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Check className="h-6 w-6" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">Your news item is live</h2>
+            <p className="text-sm text-muted-foreground">Share this link with anyone:</p>
+
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+              <span className="flex-1 truncate text-sm text-foreground">{shareUrl}</span>
+              <Button size="sm" variant="secondary" onClick={handleCopy} className="shrink-0 gap-1">
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? "Copied" : "Copy Link"}
+              </Button>
+            </div>
+
+            <div className="flex justify-center gap-3 pt-2">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View on homepage
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setPublishedPostId(null)}>
+                Write another
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
   }
 
   return (

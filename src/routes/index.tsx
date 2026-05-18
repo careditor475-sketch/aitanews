@@ -150,12 +150,14 @@ function Home() {
           <div className="space-y-8">
             {posts.map((p) => (
               <Card key={p.id} className="overflow-hidden p-0 border-border">
-                {p.image_url && (
-                  <img src={p.image_url} alt={p.title} className="aspect-video w-full object-cover" />
-                )}
-                {p.video_url && (
-                  <video src={p.video_url} controls className="aspect-video w-full bg-black" />
-                )}
+                <Link to="/news/$postId" params={{ postId: p.id }}>
+                  {p.image_url && (
+                    <img src={p.image_url} alt={p.title} className="aspect-video w-full object-cover" />
+                  )}
+                  {p.video_url && (
+                    <video src={p.video_url} controls className="aspect-video w-full bg-black" />
+                  )}
+                </Link>
                 <div className="p-6">
                   <div className="flex items-center justify-between gap-3">
                     <time className="text-xs uppercase tracking-wider text-primary">
@@ -193,7 +195,9 @@ function Home() {
                       </AlertDialog>
                     )}
                   </div>
-                  <h2 className="mt-2 text-2xl font-bold text-foreground leading-snug">{p.title}</h2>
+                  <Link to="/news/$postId" params={{ postId: p.id }} className="block mt-2 hover:opacity-80 transition-opacity">
+                    <h2 className="text-2xl font-bold text-foreground leading-snug">{p.title}</h2>
+                  </Link>
                   <p className="mt-3 whitespace-pre-wrap leading-relaxed text-foreground/80">{p.body}</p>
                 </div>
               </Card>
