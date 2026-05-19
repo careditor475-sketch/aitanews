@@ -72,18 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "My News Hub is a content management system for publishing news articles and media to a public feed." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "My News Hub is a content management system for publishing news articles and media to a public feed." },
+      { title: "AYTA NEWS — عيتا نيوز" },
+      { name: "description", content: "عيتا نيوز — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
+      { property: "og:title", content: "AYTA NEWS — عيتا نيوز" },
+      { property: "og:description", content: "عيتا نيوز — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "My News Hub is a content management system for publishing news articles and media to a public feed." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ba88354e-f445-469f-9dd1-7ed3bf59c93a/id-preview-afea0b11--bb93556b-3171-4f91-b87d-fded9181ca13.lovable.app-1779021082614.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ba88354e-f445-469f-9dd1-7ed3bf59c93a/id-preview-afea0b11--bb93556b-3171-4f91-b87d-fded9181ca13.lovable.app-1779021082614.png" },
+      { name: "twitter:title", content: "AYTA NEWS — عيتا نيوز" },
+      { name: "twitter:description", content: "عيتا نيوز — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
     ],
     links: [
       {
@@ -100,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ar" dir="rtl">
       <head>
         <HeadContent />
       </head>
