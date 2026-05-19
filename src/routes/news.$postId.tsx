@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { ArrowRight, Globe } from "lucide-react";
-import brandLogo from "@/assets/ayta-news-brand.jpg";
+import brandLogo from "@/assets/ayta-news-logo.png";
 
 type Post = {
   id: string;
@@ -69,11 +69,11 @@ function NewsDetail() {
             <div className="flex items-center gap-3">
               <img
                 src={brandLogo}
-                alt="AYTA NEWS عيتا نيوز"
-                className="h-12 w-12 rounded-md object-cover ring-1 ring-border"
+                alt="موقع عيتا نيوز الإعلامي"
+                className="h-14 w-14 rounded-md object-contain"
               />
               <div className="leading-tight">
-                <h1 className="text-2xl font-black tracking-tight text-foreground">عيتا نيوز</h1>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">موقع عيتا نيوز الإعلامي</h1>
                 <p className="text-[11px] uppercase tracking-[0.25em] text-primary">AYTA NEWS</p>
               </div>
             </div>
@@ -108,11 +108,11 @@ function NewsDetail() {
           <div className="flex items-center gap-3">
             <img
               src={brandLogo}
-              alt="AYTA NEWS عيتا نيوز"
-              className="h-12 w-12 rounded-md object-cover ring-1 ring-border"
+              alt="موقع عيتا نيوز الإعلامي"
+              className="h-14 w-14 rounded-md object-contain"
             />
             <div className="leading-tight">
-              <h1 className="text-2xl font-black tracking-tight text-foreground">عيتا نيوز</h1>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">موقع عيتا نيوز الإعلامي</h1>
               <p className="text-[11px] uppercase tracking-[0.25em] text-primary">AYTA NEWS</p>
             </div>
           </div>
@@ -162,7 +162,7 @@ function NewsDetail() {
 
       <footer className="border-t border-border bg-card mt-10">
         <div className="mx-auto max-w-5xl px-6 py-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} عيتا نيوز — AYTA NEWS. جميع الحقوق محفوظة.
+          © {new Date().getFullYear()} موقع عيتا نيوز الإعلامي — AYTA NEWS. جميع الحقوق محفوظة.
         </div>
       </footer>
     </div>
