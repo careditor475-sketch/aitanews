@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { ArrowRight, Globe } from "lucide-react";
 import brandLogo from "@/assets/ayta-news-logo.png";
+import { getPostById } from "@/lib/posts.functions";
 
 type Post = {
   id: string;
@@ -16,43 +15,91 @@ type Post = {
   created_at: string;
 };
 
+function NewsErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  return (
+    <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">حدث خطأ</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <Button
+            onClick={() => reset()}
+            variant="default"
+          >
+            إعادة المحاولة
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/">الرئيسية</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/news/$postId")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `AYTA NEWS — عيتا نيوز | خبر` },
-      { name: "description", content: "عيتا نيوز — تفاصيل الخبر" },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { post } = await getPostById({ data: { postId: params.postId } });
+    return { post };
+  },
+  head: ({ params, loaderData }) => {
+    const post: Post | null = loaderData?.post ?? null;
+    const title = post ? `${post.title} | عيتا نيوز` : "AYTA NEWS — عيتا نيوز | خبر";
+    const excerpt = post
+      ? post.body.replace(/\s+/g, " ").trim().slice(0, 160)
+      : "عيتا نيوز — تفاصيل الخبر";
+    const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
+    const image = post?.image_url ?? null;
+    const canonical = `https://aitanews.lovable.app/news/${params.postId}`;
+
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: canonical },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+    ];
+
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ name: "twitter:card", content: "summary_large_image" });
+      meta.push({ name: "twitter:image", content: image });
+    } else {
+      meta.push({ name: "twitter:card", content: "summary" });
+    }
+
+    const scripts = post
+      ? [
+          {
+            type: "application/ld+json",
+            children: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "NewsArticle",
+              headline: post.title,
+              image: post.image_url ? [post.image_url] : undefined,
+              datePublished: post.created_at,
+              url: canonical,
+              description,
+            }),
+          },
+        ]
+      : [];
+
+    return {
+      meta,
+      links: [{ rel: "canonical", href: canonical }],
+      scripts,
+    };
+  },
   component: NewsDetail,
+  errorComponent: NewsErrorComponent,
 });
 
 function NewsDetail() {
-  const { postId } = Route.useParams();
-  const [post, setPost] = useState<Post | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadPost() {
-      const { data } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("id", postId)
-        .maybeSingle();
-      setPost(data ?? null);
-      setLoading(false);
-    }
-    loadPost();
-  }, [postId]);
-
-  if (loading) {
-    return (
-      <div dir="rtl" className="min-h-screen bg-background">
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-muted-foreground">جارٍ التحميل…</p>
-        </div>
-      </div>
-    );
-  }
+  const { post } = Route.useLoaderData() ?? { post: null };
 
   if (!post) {
     return (
