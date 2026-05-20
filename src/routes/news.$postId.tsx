@@ -58,7 +58,6 @@ export const Route = createFileRoute("/news/$postId")({
       : "عيتا نيوز — تفاصيل الخبر";
     const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
     const image = post?.image_url ? toAbsoluteUrl(post.image_url) : null;
-    const video = post?.video_url ? toAbsoluteUrl(post.video_url) : null;
     const canonical = `https://aitanews.lovable.app/news/${params.postId}`;
 
     const meta: Array<Record<string, string>> = [
@@ -66,11 +65,11 @@ export const Route = createFileRoute("/news/$postId")({
       { name: "description", content: description },
       { property: "og:title", content: title },
       { property: "og:description", content: description },
-      { property: "og:type", content: video ? "video.other" : "article" },
+      { property: "og:type", content: "article" },
       { property: "og:url", content: canonical },
       { property: "og:site_name", content: "AYTA NEWS — عيتا نيوز" },
       { property: "og:locale", content: "ar_AR" },
-      { name: "twitter:card", content: video ? "player" : "summary_large_image" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
     ];
@@ -82,21 +81,6 @@ export const Route = createFileRoute("/news/$postId")({
       meta.push({ property: "og:image:height", content: "630" });
       meta.push({ property: "og:image:alt", content: post?.title ?? "AYTA NEWS" });
       meta.push({ name: "twitter:image", content: image });
-    }
-
-    if (video) {
-      const mime = video.endsWith(".webm")
-        ? "video/webm"
-        : video.endsWith(".ogg")
-          ? "video/ogg"
-          : "video/mp4";
-      meta.push({ property: "og:video", content: video });
-      meta.push({ property: "og:video:secure_url", content: video });
-      meta.push({ property: "og:video:type", content: mime });
-      meta.push({ property: "og:video:width", content: "1280" });
-      meta.push({ property: "og:video:height", content: "720" });
-      meta.push({ name: "twitter:player:stream", content: video });
-      meta.push({ name: "twitter:player:stream:content_type", content: mime });
     }
 
     const scripts = post
