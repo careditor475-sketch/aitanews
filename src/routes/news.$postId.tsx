@@ -57,17 +57,10 @@ export const Route = createFileRoute("/news/$postId")({
       ? post.body.replace(/\s+/g, " ").trim().slice(0, 160)
       : "عيتا نيوز — تفاصيل الخبر";
     const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
-    const DEFAULT_POSTER = `${SITE_ORIGIN}/og-default.jpg`;
+    const image = post?.image_url ? toAbsoluteUrl(post.image_url) : null;
     const video = post?.video_url ? toAbsoluteUrl(post.video_url) : null;
-    // Always provide a poster image so crawlers (WhatsApp/Twitter/FB) fall back
-    // to the large-image card if the raw video stream cannot be fetched.
-    const image = post?.image_url
-      ? toAbsoluteUrl(post.image_url)
-      : DEFAULT_POSTER;
     const canonical = `https://aitanews.lovable.app/news/${params.postId}`;
 
-    // Always advertise summary_large_image so the poster renders as a large card,
-    // even when a video is present (WhatsApp ignores `player` and shows the image).
     const meta: Array<Record<string, string>> = [
       { title },
       { name: "description", content: description },
@@ -77,17 +70,19 @@ export const Route = createFileRoute("/news/$postId")({
       { property: "og:url", content: canonical },
       { property: "og:site_name", content: "AYTA NEWS — عيتا نيوز" },
       { property: "og:locale", content: "ar_AR" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: video ? "player" : "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
-      { property: "og:image", content: image },
-      { property: "og:image:secure_url", content: image },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: post?.title ?? "AYTA NEWS" },
-      { property: "og:image:type", content: image.endsWith(".png") ? "image/png" : "image/jpeg" },
-      { name: "twitter:image", content: image },
     ];
+
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ property: "og:image:secure_url", content: image });
+      meta.push({ property: "og:image:width", content: "1200" });
+      meta.push({ property: "og:image:height", content: "630" });
+      meta.push({ property: "og:image:alt", content: post?.title ?? "AYTA NEWS" });
+      meta.push({ name: "twitter:image", content: image });
+    }
 
     if (video) {
       const mime = video.endsWith(".webm")
