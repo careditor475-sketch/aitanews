@@ -15,6 +15,14 @@ type Post = {
   created_at: string;
 };
 
+const SITE_ORIGIN = "https://aitanews.lovable.app";
+
+function toAbsoluteUrl(url: string): string {
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("//")) return `https:${url}`;
+  return `${SITE_ORIGIN}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 function NewsErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background px-4">
