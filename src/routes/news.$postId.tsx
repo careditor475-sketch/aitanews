@@ -49,7 +49,7 @@ export const Route = createFileRoute("/news/$postId")({
       ? post.body.replace(/\s+/g, " ").trim().slice(0, 160)
       : "عيتا نيوز — تفاصيل الخبر";
     const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
-    const image = post?.image_url ?? null;
+    const image = post?.image_url ? toAbsoluteUrl(post.image_url) : null;
     const canonical = `https://aitanews.lovable.app/news/${params.postId}`;
 
     const meta: Array<Record<string, string>> = [
@@ -59,16 +59,20 @@ export const Route = createFileRoute("/news/$postId")({
       { property: "og:description", content: description },
       { property: "og:type", content: "article" },
       { property: "og:url", content: canonical },
+      { property: "og:site_name", content: "AYTA NEWS — عيتا نيوز" },
+      { property: "og:locale", content: "ar_AR" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
     ];
 
     if (image) {
       meta.push({ property: "og:image", content: image });
-      meta.push({ name: "twitter:card", content: "summary_large_image" });
+      meta.push({ property: "og:image:secure_url", content: image });
+      meta.push({ property: "og:image:width", content: "1200" });
+      meta.push({ property: "og:image:height", content: "630" });
+      meta.push({ property: "og:image:alt", content: post?.title ?? "AYTA NEWS" });
       meta.push({ name: "twitter:image", content: image });
-    } else {
-      meta.push({ name: "twitter:card", content: "summary" });
     }
 
     const scripts = post
