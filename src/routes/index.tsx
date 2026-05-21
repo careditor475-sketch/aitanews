@@ -1,3 +1,4 @@
+import { incrementVisits } from "@/lib/posts.functions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -66,6 +67,7 @@ function Home() {
 
   useEffect(() => {
     loadPosts();
+    incrementVisits().catch(() => {});
     supabase.auth.getSession().then(({ data }) => checkAdmin(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => checkAdmin(s));
     return () => sub.subscription.unsubscribe();
