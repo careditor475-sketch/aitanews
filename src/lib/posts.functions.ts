@@ -12,3 +12,16 @@ export const getPostById = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return { post };
   });
+export const incrementVisits = createServerFn({ method: "POST" })
+  .handler(async () => {
+    await supabaseAdmin.rpc("increment_visits");
+  });
+
+export const getVisits = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { data } = await supabaseAdmin
+      .from("visits")
+      .select("count")
+      .single();
+    return { count: data?.count ?? 0 };
+  });
