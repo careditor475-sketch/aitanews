@@ -1,3 +1,4 @@
+import { getVisits } from "@/lib/posts.functions";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -184,15 +185,9 @@ function PostComposer() {
 const [visits, setVisits] = useState<number | null>(null);
 
 useEffect(() => {
-  fetch("https://api.cloudflare.com/client/v4/accounts/b71b0f717597f0dafd2d800a5495cf7a/analytics/dashboard?since=-10080&continuous=true", {
-    headers: {
-      "X-Auth-Email": "Careditor475@gmail.com",
-      "X-Auth-Key": "cfk_6Uw8Cfi30No06vm9tsU706WJus1KaLcj0y6J7KaB58c0de75"
-    }
-  }).then(r => r.json()).then(d => {
-    setVisits(d?.result?.totals?.visits?.all ?? null);
-  }).catch(() => {});
+  getVisits().then(({ count }) => setVisits(count)).catch(() => {});
 }, []);
+
   const origin = typeof window !== "undefined" ? window.location.origin : "https://medportaltest.lovable.app";
   const shareUrl = publishedPostId ? `${origin}/news/${publishedPostId}` : "";
 
