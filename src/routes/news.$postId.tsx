@@ -15,7 +15,7 @@ type Post = {
   created_at: string;
 };
 
-const SITE_ORIGIN = "https://aitanews.lovable.app";
+const SITE_ORIGIN = "https://lb.aytanews.workers.dev";
 
 function toAbsoluteUrl(url: string): string {
   if (/^https?:\/\//i.test(url)) return url;
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/news/$postId")({
       : "عيتا نيوز — تفاصيل الخبر";
     const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
     const image = post?.image_url ? toAbsoluteUrl(post.image_url) : null;
-    const canonical = `https://aitanews.lovable.app/news/${params.postId}`;
+    const canonical = `https://lb.aytanews.workers.dev/news/${params.postId}`;
 
     const meta: Array<Record<string, string>> = [
       { title },
