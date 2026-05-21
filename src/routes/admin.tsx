@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink } from "lucide-react";
+import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink, Eye } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — News Feed" }] }),
@@ -181,7 +181,18 @@ function PostComposer() {
   const [busy, setBusy] = useState(false);
   const [publishedPostId, setPublishedPostId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+const [visits, setVisits] = useState<number | null>(null);
 
+useEffect(() => {
+  fetch("https://api.cloudflare.com/client/v4/accounts/b71b0f717597f0dafd2d800a5495cf7a/analytics/dashboard?since=-10080&continuous=true", {
+    headers: {
+      "X-Auth-Email": "Careditor475@gmail.com",
+      "X-Auth-Key": "cfk_6Uw8Cfi30No06vm9tsU706WJus1KaLcj0y6J7KaB58c0de75"
+    }
+  }).then(r => r.json()).then(d => {
+    setVisits(d?.result?.totals?.visits?.all ?? null);
+  }).catch(() => {});
+}, []);
   const origin = typeof window !== "undefined" ? window.location.origin : "https://medportaltest.lovable.app";
   const shareUrl = publishedPostId ? `${origin}/news/${publishedPostId}` : "";
 
@@ -312,7 +323,11 @@ function PostComposer() {
           >
             <ArrowLeft className="mr-1 h-4 w-4" /> View feed
           </Link>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">New post</h1>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">New post</h1>{visits !== null && (
+  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+    <Eye className="h-4 w-4" /> {visits.toLocaleString()} زيارة هذا الأسبوع
+  </p>
+)}
         </div>
         <Button
           variant="ghost"
