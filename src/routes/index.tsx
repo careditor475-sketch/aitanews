@@ -72,8 +72,7 @@ function Home() {
       setHasMore(first.length === PAGE_SIZE);
       setLoading(false);
     })();
-    // Fire-and-forget; never blocks render.
-    incrementVisits().catch(() => {});
+
 
     async function checkAdmin(s: Session | null) {
       const userId = s?.user.id ?? null;
