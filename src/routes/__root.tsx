@@ -10,7 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 
-// Forces the browser to parse Adsterra precisely like a standard raw HTML page
+// Forces the browser to parse your real Adsterra Native Banner precisely
 export function AdsterraNativeBanner() {
   return (
     <div className="w-full flex justify-center my-6 overflow-hidden min-h-[120px] px-4">
@@ -18,8 +18,8 @@ export function AdsterraNativeBanner() {
         className="w-full max-w-4xl mx-auto text-center"
         dangerouslySetInnerHTML={{
           __html: `
-            <div id="container-46e771d64f01e5c83ee164e89bb14e82"></div>
-            <script type="text/javascript" data-cfasync="false" async src="https://pl29648714.effectivecpmnetwork.com/46e771d64f01e5c83ee164e89bb14e82/invoke.js"></script>
+            <div id="container-29548215"></div>
+            <script type="text/javascript" data-cfasync="false" async src="https://pl29648714.effectivecpmnetwork.com/29548215/invoke.js"></script>
           `,
         }}
       />
@@ -131,7 +131,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      {/* Places the exact raw native HTML block safely at the footer layout */}
+      {/* Renders your live native banner ad layout perfectly */}
       <AdsterraNativeBanner />
     </QueryClientProvider>
   );
