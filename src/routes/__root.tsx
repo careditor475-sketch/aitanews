@@ -7,37 +7,21 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
 
 import appCss from "../styles.css?url";
 
-// High-Performance Safe React Wrapper for Adsterra HTML Native Elements
+// Forces the browser to parse Adsterra precisely like a standard raw HTML page
 export function AdsterraNativeBanner() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && containerRef.current) {
-      // Clear any existing children to prevent infinite double-rendering bugs on mobile
-      containerRef.current.innerHTML = "";
-
-      // Create and mount the script precisely inside the target element container
-      const script = document.createElement("script");
-      script.type = "text/javascript";
-      script.async = true;
-      script.setAttribute("data-cfasync", "false");
-      script.src = "https://pl29648714.effectivecpmnetwork.com/46e771d64f01e5c83ee164e89bb14e82/invoke.js";
-      
-      containerRef.current.appendChild(script);
-    }
-  }, []);
-
   return (
     <div className="w-full flex justify-center my-6 overflow-hidden min-h-[120px] px-4">
-      {/* The precise layout target structural container the Adsterra source expects */}
-      <div 
-        ref={containerRef}
-        id="container-46e771d64f01e5c83ee164e89bb14e82" 
+      <div
         className="w-full max-w-4xl mx-auto text-center"
+        dangerouslySetInnerHTML={{
+          __html: `
+            <div id="container-46e771d64f01e5c83ee164e89bb14e82"></div>
+            <script type="text/javascript" data-cfasync="false" async src="https://pl29648714.effectivecpmnetwork.com/46e771d64f01e5c83ee164e89bb14e82/invoke.js"></script>
+          `,
+        }}
       />
     </div>
   );
@@ -147,7 +131,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      {/* Renders your native layout ad smoothly right in the site's footer shell */}
+      {/* Places the exact raw native HTML block safely at the footer layout */}
       <AdsterraNativeBanner />
     </QueryClientProvider>
   );
