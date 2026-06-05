@@ -237,10 +237,23 @@ function Home() {
                   <Link to="/news/$postId" params={{ postId: p.id }} className="block mt-2 hover:opacity-80 transition-opacity">
                     <h2 className="text-2xl font-bold text-foreground leading-snug">{p.title}</h2>
                   </Link>
-                  <p className="mt-3 whitespace-pre-wrap leading-relaxed text-foreground/80">{p.body}</p>
+                  <p className="mt-3 line-clamp-4 whitespace-pre-wrap leading-relaxed text-foreground/80">
+                    {p.body}
+                  </p>
                 </div>
               </Card>
             ))}
+            {hasMore && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  variant="outline"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? "جارٍ التحميل…" : "عرض المزيد"}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>
