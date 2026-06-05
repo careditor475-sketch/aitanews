@@ -1,4 +1,4 @@
-import { incrementVisits } from "@/lib/posts.functions";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
