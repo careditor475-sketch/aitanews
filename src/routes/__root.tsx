@@ -11,30 +11,33 @@ import { useEffect, useRef } from "react";
 
 import appCss from "../styles.css?url";
 
-// High-Performance React Wrapper for Adsterra Native Code
+// High-Performance Safe React Wrapper for Adsterra HTML Native Elements
 export function AdsterraNativeBanner() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Ensure this runs only on the client side and prevents double injection during hot-reloads
-    if (typeof window !== "undefined" && containerRef.current && !containerRef.current.querySelector('script')) {
+    if (typeof window !== "undefined" && containerRef.current) {
+      // Clear any existing children to prevent infinite double-rendering bugs on mobile
+      containerRef.current.innerHTML = "";
+
+      // Create and mount the script precisely inside the target element container
       const script = document.createElement("script");
+      script.type = "text/javascript";
       script.async = true;
       script.setAttribute("data-cfasync", "false");
       script.src = "https://pl29648714.effectivecpmnetwork.com/46e771d64f01e5c83ee164e89bb14e82/invoke.js";
       
-      // Appending directly to the container guarantees the target div exists when the script evaluates
       containerRef.current.appendChild(script);
     }
   }, []);
 
   return (
-    <div className="w-full flex justify-center my-6 overflow-hidden min-h-[100px] px-4">
-      {/* The script expects this specific container ID right next to it */}
+    <div className="w-full flex justify-center my-6 overflow-hidden min-h-[120px] px-4">
+      {/* The precise layout target structural container the Adsterra source expects */}
       <div 
         ref={containerRef}
         id="container-46e771d64f01e5c83ee164e89bb14e82" 
-        className="w-full max-w-4xl mx-auto" 
+        className="w-full max-w-4xl mx-auto text-center"
       />
     </div>
   );
@@ -144,7 +147,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      {/* Renders the ad layout perfectly at the footer of all route paths */}
+      {/* Renders your native layout ad smoothly right in the site's footer shell */}
       <AdsterraNativeBanner />
     </QueryClientProvider>
   );
