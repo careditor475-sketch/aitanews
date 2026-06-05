@@ -1,6 +1,6 @@
-import { incrementVisits } from "@/lib/posts.functions";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -30,6 +30,8 @@ type Post = {
   created_at: string;
 };
 
+const PAGE_SIZE = 12;
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -43,38 +45,73 @@ export const Route = createFileRoute("/")({
 function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const lastCheckedUserId = useRef<string | null | undefined>(undefined);
 
-  async function loadPosts() {
-    const { data } = await supabase
+  const loadPage = useCallback(async (offset: number) => {
+    const { data, error } = await supabase
       .from("posts")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setPosts(data ?? []);
-    setLoading(false);
-  }
-
-  async function checkAdmin(s: Session | null) {
-    if (!s) return setIsAdmin(false);
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", s.user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
-  }
-
-  useEffect(() => {
-    loadPosts();
-    incrementVisits().catch(() => {});
-    supabase.auth.getSession().then(({ data }) => checkAdmin(data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => checkAdmin(s));
-    return () => sub.subscription.unsubscribe();
+      .select("id,title,body,image_url,video_url,created_at")
+      .order("created_at", { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
+    if (error) {
+      toast.error(error.message);
+      return [] as Post[];
+    }
+    return (data ?? []) as Post[];
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const first = await loadPage(0);
+      if (cancelled) return;
+      setPosts(first);
+      setHasMore(first.length === PAGE_SIZE);
+      setLoading(false);
+    })();
+
+
+    async function checkAdmin(s: Session | null) {
+      const userId = s?.user.id ?? null;
+      if (lastCheckedUserId.current === userId) return;
+      lastCheckedUserId.current = userId;
+      if (!s) {
+        if (!cancelled) setIsAdmin(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", s.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!cancelled) setIsAdmin(!!data);
+    }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      void checkAdmin(s);
+    });
+    void supabase.auth.getSession().then(({ data }) => checkAdmin(data.session));
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, [loadPage]);
+
+  async function handleLoadMore() {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const next = await loadPage(posts.length);
+    setPosts((prev) => [...prev, ...next]);
+    setHasMore(next.length === PAGE_SIZE);
+    setLoadingMore(false);
+  }
+
   async function handleDelete(post: Post) {
-    // Delete media from storage if it lives in our bucket
     const paths: string[] = [];
     for (const url of [post.image_url, post.video_url]) {
       if (!url) continue;
@@ -200,10 +237,23 @@ function Home() {
                   <Link to="/news/$postId" params={{ postId: p.id }} className="block mt-2 hover:opacity-80 transition-opacity">
                     <h2 className="text-2xl font-bold text-foreground leading-snug">{p.title}</h2>
                   </Link>
-                  <p className="mt-3 whitespace-pre-wrap leading-relaxed text-foreground/80">{p.body}</p>
+                  <p className="mt-3 line-clamp-4 whitespace-pre-wrap leading-relaxed text-foreground/80">
+                    {p.body}
+                  </p>
                 </div>
               </Card>
             ))}
+            {hasMore && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  variant="outline"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? "جارٍ التحميل…" : "عرض المزيد"}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>

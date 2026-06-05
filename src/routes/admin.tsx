@@ -1,6 +1,5 @@
-import { getVisits } from "@/lib/posts.functions";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,50 +9,76 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink, Eye } from "lucide-react";
+import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — News Feed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Admin — News Feed" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: AdminPage,
 });
 
+type AdminState = "loading" | "anonymous" | "not_admin" | "admin";
+
 function AdminPage() {
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [state, setState] = useState<AdminState>("loading");
+  const lastCheckedUserId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    let cancelled = false;
+
+    async function check(s: Session | null) {
+      const userId = s?.user.id ?? null;
+      // Skip if we already evaluated this exact user (prevents re-render loops
+      // when supabase emits TOKEN_REFRESHED / INITIAL_SESSION back to back).
+      if (lastCheckedUserId.current === userId) return;
+      lastCheckedUserId.current = userId;
+
+      if (!s) {
+        if (!cancelled) {
+          setSession(null);
+          setState("anonymous");
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", s.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (cancelled) return;
       setSession(s);
-      checkAdmin(s);
+      if (error) {
+        // Treat fetch errors as not-admin instead of spinning forever.
+        setState("not_admin");
+        return;
+      }
+      setState(data ? "admin" : "not_admin");
+    }
+
+    // Single source of truth: subscribe first, then prime with current session.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      void check(s);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      checkAdmin(data.session);
-    });
-    return () => sub.subscription.unsubscribe();
+    void supabase.auth.getSession().then(({ data }) => check(data.session));
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
-  async function checkAdmin(s: Session | null) {
-    if (!s) {
-      setIsAdmin(false);
-      setChecking(false);
-      return;
-    }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", s.user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
-    setChecking(false);
-  }
-
-  if (checking) {
+  if (state === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
+        <p className="text-muted-foreground">جارٍ التحميل…</p>
       </div>
     );
   }
@@ -61,7 +86,9 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <Toaster richColors />
-      {!session ? <LoginForm /> : !isAdmin ? <NotAdmin /> : <PostComposer />}
+      {state === "anonymous" && <LoginForm />}
+      {state === "not_admin" && <NotAdmin />}
+      {state === "admin" && session && <PostComposer />}
     </div>
   );
 }
@@ -182,13 +209,11 @@ function PostComposer() {
   const [busy, setBusy] = useState(false);
   const [publishedPostId, setPublishedPostId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-const [visits, setVisits] = useState<number | null>(null);
 
-useEffect(() => {
-  getVisits().then(({ count }) => setVisits(count)).catch(() => {});
-}, []);
-
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://medportaltest.lovable.app";
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://aitanews.lovable.app";
   const shareUrl = publishedPostId ? `${origin}/news/${publishedPostId}` : "";
 
   async function uploadFile(file: File, kind: "image" | "video"): Promise<string> {
@@ -318,11 +343,7 @@ useEffect(() => {
           >
             <ArrowLeft className="mr-1 h-4 w-4" /> View feed
           </Link>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">New post</h1>{visits !== null && (
-  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-    <Eye className="h-4 w-4" /> {visits.toLocaleString()} زيارة هذا الأسبوع
-  </p>
-)}
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">New post</h1>
         </div>
         <Button
           variant="ghost"
