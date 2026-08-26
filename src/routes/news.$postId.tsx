@@ -12,6 +12,7 @@ type Post = {
   body: string;
   image_url: string | null;
   video_url: string | null;
+  thumbnail_url: string | null;
   created_at: string;
 };
 
@@ -57,7 +58,9 @@ export const Route = createFileRoute("/news/$postId")({
       ? post.body.replace(/\s+/g, " ").trim().slice(0, 160)
       : "عيتا نيوز — تفاصيل الخبر";
     const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
-    const image = post?.image_url ? toAbsoluteUrl(post.image_url) : null;
+    // Priority: article photo → auto-generated video thumbnail → site logo.
+    const rawImage = post?.image_url ?? post?.thumbnail_url ?? (post ? brandLogo : null);
+    const image = rawImage ? toAbsoluteUrl(rawImage) : null;
     const canonical = `https://lb.aytanews.workers.dev/news/${params.postId}`;
 
     const meta: Array<Record<string, string>> = [
@@ -91,7 +94,7 @@ export const Route = createFileRoute("/news/$postId")({
               "@context": "https://schema.org",
               "@type": "NewsArticle",
               headline: post.title,
-              image: post.image_url ? [post.image_url] : undefined,
+              image: image ? [image] : undefined,
               datePublished: post.created_at,
               url: canonical,
               description,
@@ -203,7 +206,12 @@ function NewsDetail() {
             <img src={post.image_url} alt={post.title} className="aspect-video w-full object-cover" />
           )}
           {post.video_url && (
-            <video src={post.video_url} controls className="aspect-video w-full bg-black" />
+            <video
+              src={post.video_url}
+              poster={post.thumbnail_url ?? undefined}
+              controls
+              className="aspect-video w-full bg-black"
+            />
           )}
           <div className="p-6">
             <time className="text-xs uppercase tracking-wider text-primary">
