@@ -58,7 +58,9 @@ export const Route = createFileRoute("/news/$postId")({
       ? post.body.replace(/\s+/g, " ").trim().slice(0, 160)
       : "عيتا نيوز — تفاصيل الخبر";
     const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
-    const image = post?.image_url ? toAbsoluteUrl(post.image_url) : null;
+    // Priority: article photo → auto-generated video thumbnail → site logo.
+    const rawImage = post?.image_url ?? post?.thumbnail_url ?? (post ? brandLogo : null);
+    const image = rawImage ? toAbsoluteUrl(rawImage) : null;
     const canonical = `https://lb.aytanews.workers.dev/news/${params.postId}`;
 
     const meta: Array<Record<string, string>> = [
