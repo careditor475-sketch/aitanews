@@ -94,7 +94,7 @@ export const Route = createFileRoute("/news/$postId")({
               "@context": "https://schema.org",
               "@type": "NewsArticle",
               headline: post.title,
-              image: post.image_url ? [post.image_url] : undefined,
+              image: image ? [image] : undefined,
               datePublished: post.created_at,
               url: canonical,
               description,
