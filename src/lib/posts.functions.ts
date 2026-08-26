@@ -6,7 +6,7 @@ export const getPostById = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const { data: post, error } = await supabaseAdmin
       .from("posts")
-      .select("id,title,body,image_url,video_url,created_at")
+      .select("id,title,body,image_url,video_url,thumbnail_url,created_at")
       .eq("id", data.postId)
       .maybeSingle();
     if (error) throw new Error(error.message);
