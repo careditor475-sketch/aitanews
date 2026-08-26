@@ -206,7 +206,12 @@ function NewsDetail() {
             <img src={post.image_url} alt={post.title} className="aspect-video w-full object-cover" />
           )}
           {post.video_url && (
-            <video src={post.video_url} controls className="aspect-video w-full bg-black" />
+            <video
+              src={post.video_url}
+              poster={post.thumbnail_url ?? undefined}
+              controls
+              className="aspect-video w-full bg-black"
+            />
           )}
           <div className="p-6">
             <time className="text-xs uppercase tracking-wider text-primary">
