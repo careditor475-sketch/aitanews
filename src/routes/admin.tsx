@@ -216,16 +216,79 @@ function PostComposer() {
       : "https://aitanews.lovable.app";
   const shareUrl = publishedPostId ? `${origin}/news/${publishedPostId}` : "";
 
-  async function uploadFile(file: File, kind: "image" | "video"): Promise<string> {
-    const ext = file.name.split(".").pop();
-    const path = `${kind}s/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error } = await supabase.storage.from("media").upload(path, file, {
+  async function uploadBlob(blob: Blob, path: string): Promise<string> {
+    const { error } = await supabase.storage.from("media").upload(path, blob, {
       cacheControl: "3600",
       upsert: false,
+      contentType: blob.type || undefined,
     });
     if (error) throw error;
     const { data } = supabase.storage.from("media").getPublicUrl(path);
     return data.publicUrl;
+  }
+
+  async function uploadFile(file: File, kind: "image" | "video"): Promise<string> {
+    const ext = file.name.split(".").pop();
+    const path = `${kind}s/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    return uploadBlob(file, path);
+  }
+
+  /** Extracts a clean still frame from a video file (no overlay), 1200x630 cover-cropped. */
+  async function extractVideoThumbnail(file: File): Promise<Blob | null> {
+    if (typeof document === "undefined") return null;
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    video.crossOrigin = "anonymous";
+    video.src = url;
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("timeout")), 15000);
+        const done = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        video.onloadeddata = () => {
+          // Seek slightly in to avoid an all-black first frame.
+          const target = Number.isFinite(video.duration) && video.duration > 1 ? Math.min(1, video.duration / 2) : 0;
+          if (video.currentTime === target) return done();
+          video.onseeked = done;
+          video.currentTime = target;
+        };
+        video.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error("video decode failed"));
+        };
+      });
+
+      const W = 1200;
+      const H = 630;
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+
+      const vw = video.videoWidth || W;
+      const vh = video.videoHeight || H;
+      const scale = Math.max(W / vw, H / vh);
+      const dw = vw * scale;
+      const dh = vh * scale;
+      ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
+
+      return await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob((b) => resolve(b), "image/jpeg", 0.85),
+      );
+    } catch {
+      return null;
+    } finally {
+      URL.revokeObjectURL(url);
+      video.removeAttribute("src");
+      video.load();
+    }
   }
 
   async function onSubmit(e: FormEvent) {
