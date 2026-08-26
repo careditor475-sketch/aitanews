@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          thumbnail_url: string | null
           title: string
           video_url: string | null
         }
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          thumbnail_url?: string | null
           title: string
           video_url?: string | null
         }
@@ -39,6 +41,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          thumbnail_url?: string | null
           title?: string
           video_url?: string | null
         }
