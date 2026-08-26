@@ -301,6 +301,20 @@ function PostComposer() {
     try {
       const image_url = image ? await uploadFile(image, "image") : null;
       const video_url = video ? await uploadFile(video, "video") : null;
+
+      let thumbnail_url: string | null = null;
+      if (video) {
+        const frame = await extractVideoThumbnail(video);
+        if (frame) {
+          const path = `thumbnails/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+          try {
+            thumbnail_url = await uploadBlob(frame, path);
+          } catch {
+            thumbnail_url = null;
+          }
+        }
+      }
+
       const { data: u } = await supabase.auth.getUser();
       const { data: inserted, error } = await supabase
         .from("posts")
@@ -309,6 +323,7 @@ function PostComposer() {
           body: body.trim(),
           image_url,
           video_url,
+          thumbnail_url,
           author_id: u.user?.id ?? null,
         })
         .select("id")
