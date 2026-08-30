@@ -201,6 +201,90 @@ function NotAdmin() {
   );
 }
 
+function VisitorStats() {
+  const [totalViews, setTotalViews] = useState<number | null>(null);
+  const [todayViews, setTodayViews] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const now = new Date();
+      const startOfToday = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
+
+      const [{ count: total }, { count: today }] = await Promise.all([
+        supabase.from("page_views").select("*", { count: "exact", head: true }),
+        supabase
+          .from("page_views")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", startOfToday.toISOString()),
+      ]);
+
+      if (cancelled) return;
+      setTotalViews(total ?? 0);
+      setTodayViews(today ?? 0);
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <div className="mb-8 grid gap-4 sm:grid-cols-2">
+      <StatCard
+        label="إجمالي المشاهدات"
+        value={totalViews}
+        icon={<Eye className="h-5 w-5" />}
+        accent="text-primary"
+      />
+      <StatCard
+        label="مشاهدات اليوم"
+        value={todayViews}
+        icon={<CalendarDays className="h-5 w-5" />}
+        accent="text-chart-2"
+      />
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+  accent,
+}: {
+  label: string;
+  value: number | null;
+  icon: React.ReactNode;
+  accent: string;
+}) {
+  return (
+    <Card className="flex items-center gap-4 p-5">
+      <div
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted ${accent}`}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="mt-0.5 text-3xl font-bold tracking-tight text-foreground">
+          {value === null ? "—" : value.toLocaleString("ar-EG")}
+        </p>
+      </div>
+    </Card>
+  );
+}
+
 function PostComposer() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
