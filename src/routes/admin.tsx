@@ -518,6 +518,8 @@ function PostComposer() {
         </Button>
       </header>
 
+      <VisitorStats />
+
       <Card className="p-8">
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="space-y-2">
