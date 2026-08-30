@@ -98,6 +98,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "AYTA NEWS — عيتا نيوز" },
       { name: "twitter:description", content: "عيتا نيوز — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
     ],
+    scripts: [
+      {
+        async: true,
+        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6397475315199164",
+        crossOrigin: "anonymous",
+      },
+    ],
     links: [
       {
         rel: "stylesheet",
