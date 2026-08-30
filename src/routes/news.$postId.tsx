@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { ArrowRight, Globe } from "lucide-react";
 import brandLogo from "@/assets/ayta-news-logo.png";
 import { getPostById } from "@/lib/posts.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type Post = {
   id: string;
@@ -115,6 +117,18 @@ export const Route = createFileRoute("/news/$postId")({
 
 function NewsDetail() {
   const { post } = Route.useLoaderData() ?? { post: null };
+  const { postId } = Route.useParams();
+
+  // Record a page view (fire-and-forget, client-side only).
+  useEffect(() => {
+    if (!postId) return;
+    void supabase
+      .from("page_views")
+      .insert({ path: `/news/${postId}` })
+      .then(({ error }) => {
+        if (error) console.warn("page_views insert failed:", error.message);
+      });
+  }, [postId]);
 
   if (!post) {
     return (

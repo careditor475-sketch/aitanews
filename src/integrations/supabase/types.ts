@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          path: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          path?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           author_id: string | null
