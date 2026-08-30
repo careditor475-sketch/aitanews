@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink } from "lucide-react";
+import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink, Eye, CalendarDays } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
