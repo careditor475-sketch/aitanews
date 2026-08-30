@@ -117,6 +117,18 @@ export const Route = createFileRoute("/news/$postId")({
 
 function NewsDetail() {
   const { post } = Route.useLoaderData() ?? { post: null };
+  const { postId } = Route.useParams();
+
+  // Record a page view (fire-and-forget, client-side only).
+  useEffect(() => {
+    if (!postId) return;
+    void supabase
+      .from("page_views")
+      .insert({ path: `/news/${postId}` })
+      .then(({ error }) => {
+        if (error) console.warn("page_views insert failed:", error.message);
+      });
+  }, [postId]);
 
   if (!post) {
     return (
