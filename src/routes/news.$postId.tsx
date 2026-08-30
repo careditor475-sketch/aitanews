@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { ArrowRight, Globe } from "lucide-react";
 import brandLogo from "@/assets/ayta-news-logo.png";
 import { getPostById } from "@/lib/posts.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type Post = {
   id: string;

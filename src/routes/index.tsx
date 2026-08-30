@@ -63,6 +63,13 @@ function Home() {
     return (data ?? []) as Post[];
   }, []);
 
+  // Record a page view (fire-and-forget, client-side only).
+  useEffect(() => {
+    void supabase.from("page_views").insert({ path: "/" }).then(({ error }) => {
+      if (error) console.warn("page_views insert failed:", error.message);
+    });
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
