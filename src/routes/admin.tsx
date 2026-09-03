@@ -472,6 +472,7 @@ function PostComposer() {
           image_url,
           video_url,
           thumbnail_url,
+          category,
           author_id: u.user?.id ?? null,
         })
         .select("id")
