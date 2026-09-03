@@ -36,6 +36,7 @@ export type Database = {
         Row: {
           author_id: string | null
           body: string
+          category: string
           created_at: string
           id: string
           image_url: string | null
@@ -46,6 +47,7 @@ export type Database = {
         Insert: {
           author_id?: string | null
           body: string
+          category?: string
           created_at?: string
           id?: string
           image_url?: string | null
@@ -56,12 +58,37 @@ export type Database = {
         Update: {
           author_id?: string | null
           body?: string
+          category?: string
           created_at?: string
           id?: string
           image_url?: string | null
           thumbnail_url?: string | null
           title?: string
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }
