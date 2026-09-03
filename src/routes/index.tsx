@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Lock, Trash2, Globe } from "lucide-react";
 import brandLogo from "@/assets/dir-alkhabar-logo.png";
+import { CATEGORIES, ALL_LABEL, type Category } from "@/lib/categories";
 
 type Post = {
   id: string;
@@ -27,6 +28,7 @@ type Post = {
   body: string;
   image_url: string | null;
   video_url: string | null;
+  category: string | null;
   created_at: string;
 };
 
