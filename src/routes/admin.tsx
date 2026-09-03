@@ -482,6 +482,7 @@ function PostComposer() {
       setPublishedPostId(inserted.id);
       setTitle("");
       setBody("");
+      setCategory(DEFAULT_CATEGORY);
       setImage(null);
       setVideo(null);
     } catch (err) {
