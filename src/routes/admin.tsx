@@ -9,7 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink, Eye, CalendarDays } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CATEGORIES, DEFAULT_CATEGORY, type Category } from "@/lib/categories";
+import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink, Eye, CalendarDays, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
