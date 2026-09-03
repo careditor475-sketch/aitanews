@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { ArrowRight, Globe } from "lucide-react";
-import brandLogo from "@/assets/ayta-news-logo.png";
+import brandLogo from "@/assets/dir-alkhabar-logo.png";
 import { getPostById } from "@/lib/posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -55,11 +55,11 @@ export const Route = createFileRoute("/news/$postId")({
   },
   head: ({ params, loaderData }) => {
     const post: Post | null = loaderData?.post ?? null;
-    const title = post ? `${post.title} | عيتا نيوز` : "AYTA NEWS — عيتا نيوز | خبر";
+    const title = post ? `${post.title} | درع الخبر` : "درع الخبر | خبر";
     const excerpt = post
       ? post.body.replace(/\s+/g, " ").trim().slice(0, 160)
-      : "عيتا نيوز — تفاصيل الخبر";
-    const description = excerpt.length > 0 ? excerpt : "عيتا نيوز — تفاصيل الخبر";
+      : "درع الخبر — تفاصيل الخبر";
+    const description = excerpt.length > 0 ? excerpt : "درع الخبر — تفاصيل الخبر";
     // Priority: article photo → auto-generated video thumbnail → site logo.
     const rawImage = post?.image_url ?? post?.thumbnail_url ?? (post ? brandLogo : null);
     const image = rawImage ? toAbsoluteUrl(rawImage) : null;
@@ -72,7 +72,7 @@ export const Route = createFileRoute("/news/$postId")({
       { property: "og:description", content: description },
       { property: "og:type", content: "article" },
       { property: "og:url", content: canonical },
-      { property: "og:site_name", content: "AYTA NEWS — عيتا نيوز" },
+      { property: "og:site_name", content: "درع الخبر" },
       { property: "og:locale", content: "ar_AR" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
@@ -84,7 +84,7 @@ export const Route = createFileRoute("/news/$postId")({
       meta.push({ property: "og:image:secure_url", content: image });
       meta.push({ property: "og:image:width", content: "1200" });
       meta.push({ property: "og:image:height", content: "630" });
-      meta.push({ property: "og:image:alt", content: post?.title ?? "AYTA NEWS" });
+      meta.push({ property: "og:image:alt", content: post?.title ?? "DIRAA AL-KHABAR" });
       meta.push({ name: "twitter:image", content: image });
     }
 
@@ -145,12 +145,12 @@ function NewsDetail() {
             <div className="flex items-center gap-3">
               <img
                 src={brandLogo}
-                alt="موقع عيتا نيوز الإعلامي"
+                alt="درع الخبر"
                 className="h-14 w-14 rounded-md object-contain"
               />
               <div className="leading-tight">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">موقع عيتا نيوز الإعلامي</h1>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-primary">AYTA NEWS</p>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">درع الخبر</h1>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-primary">DIRAA AL-KHABAR</p>
               </div>
             </div>
             <Button asChild variant="outline" size="sm" className="border-primary/40 text-foreground hover:bg-primary hover:text-primary-foreground">
@@ -184,12 +184,12 @@ function NewsDetail() {
           <div className="flex items-center gap-3">
             <img
               src={brandLogo}
-              alt="موقع عيتا نيوز الإعلامي"
+              alt="درع الخبر"
               className="h-14 w-14 rounded-md object-contain"
             />
             <div className="leading-tight">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">موقع عيتا نيوز الإعلامي</h1>
-              <p className="text-[11px] uppercase tracking-[0.25em] text-primary">AYTA NEWS</p>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">درع الخبر</h1>
+              <p className="text-[11px] uppercase tracking-[0.25em] text-primary">DIRAA AL-KHABAR</p>
             </div>
           </div>
           <Button asChild variant="outline" size="sm" className="border-primary/40 text-foreground hover:bg-primary hover:text-primary-foreground">
@@ -243,7 +243,7 @@ function NewsDetail() {
 
       <footer className="border-t border-border bg-card mt-10">
         <div className="mx-auto max-w-5xl px-6 py-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} موقع عيتا نيوز الإعلامي — AYTA NEWS. جميع الحقوق محفوظة.
+          © {new Date().getFullYear()} درع الخبر . جميع الحقوق محفوظة.
         </div>
       </footer>
     </div>
