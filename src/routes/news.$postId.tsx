@@ -243,7 +243,7 @@ function NewsDetail() {
 
       <footer className="border-t border-border bg-card mt-10">
         <div className="mx-auto max-w-5xl px-6 py-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} درع الخبر . جميع الحقوق محفوظة.
+          © {new Date().getFullYear()} درع الخبر. جميع الحقوق محفوظة.
         </div>
       </footer>
     </div>
