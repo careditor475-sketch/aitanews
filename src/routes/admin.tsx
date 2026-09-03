@@ -586,6 +586,8 @@ function PostComposer() {
 
       <VisitorStats />
 
+      <TickerEditor />
+
       <Card className="p-8">
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -599,6 +601,24 @@ function PostComposer() {
               placeholder="A short, clear headline"
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">القسم / Category</Label>
+            <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="اختر القسم" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+
 
           <div className="space-y-2">
             <Label htmlFor="body">News text</Label>
