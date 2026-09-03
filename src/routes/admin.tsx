@@ -9,7 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink, Eye, CalendarDays } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CATEGORIES, DEFAULT_CATEGORY, type Category } from "@/lib/categories";
+import { ArrowLeft, LogOut, Upload, Copy, Check, ExternalLink, Eye, CalendarDays, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -285,9 +293,65 @@ function StatCard({
   );
 }
 
+function TickerEditor() {
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "ticker_text")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setText(data?.value ?? "");
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    const { error } = await supabase
+      .from("site_settings")
+      .upsert({ key: "ticker_text", value: text.trim() }, { onConflict: "key" });
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else toast.success("تم تحديث شريط الأخبار العاجلة");
+  }
+
+  return (
+    <Card className="mb-8 p-6" dir="rtl">
+      <div className="mb-4 flex items-center gap-2">
+        <Megaphone className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-semibold text-foreground">شريط الأخبار العاجلة</h2>
+      </div>
+      <form onSubmit={save} className="flex flex-col gap-3 sm:flex-row">
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          disabled={loading}
+          maxLength={300}
+          placeholder="اكتب نص الشريط العاجل…"
+        />
+        <Button type="submit" disabled={saving || loading} className="shrink-0">
+          {saving ? "جارٍ الحفظ…" : "تحديث"}
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
 function PostComposer() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [category, setCategory] = useState<Category>(DEFAULT_CATEGORY);
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -408,6 +472,7 @@ function PostComposer() {
           image_url,
           video_url,
           thumbnail_url,
+          category,
           author_id: u.user?.id ?? null,
         })
         .select("id")
@@ -417,6 +482,7 @@ function PostComposer() {
       setPublishedPostId(inserted.id);
       setTitle("");
       setBody("");
+      setCategory(DEFAULT_CATEGORY);
       setImage(null);
       setVideo(null);
     } catch (err) {
@@ -520,6 +586,8 @@ function PostComposer() {
 
       <VisitorStats />
 
+      <TickerEditor />
+
       <Card className="p-8">
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -533,6 +601,24 @@ function PostComposer() {
               placeholder="A short, clear headline"
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">القسم / Category</Label>
+            <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="اختر القسم" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+
 
           <div className="space-y-2">
             <Label htmlFor="body">News text</Label>

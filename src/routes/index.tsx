@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Lock, Trash2, Globe } from "lucide-react";
 import brandLogo from "@/assets/dir-alkhabar-logo.png";
+import { CATEGORIES, ALL_LABEL, type Category } from "@/lib/categories";
 
 type Post = {
   id: string;
@@ -27,6 +28,7 @@ type Post = {
   body: string;
   image_url: string | null;
   video_url: string | null;
+  category: string | null;
   created_at: string;
 };
 
@@ -48,20 +50,27 @@ function Home() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+  const [ticker, setTicker] = useState("تطورات محلية وعالمية على مدار الساعة");
   const lastCheckedUserId = useRef<string | null | undefined>(undefined);
 
-  const loadPage = useCallback(async (offset: number) => {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("id,title,body,image_url,video_url,created_at")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1);
-    if (error) {
-      toast.error(error.message);
-      return [] as Post[];
-    }
-    return (data ?? []) as Post[];
-  }, []);
+  const loadPage = useCallback(
+    async (offset: number, category: Category | null) => {
+      let query = supabase
+        .from("posts")
+        .select("id,title,body,image_url,video_url,category,created_at")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+      if (category) query = query.eq("category", category);
+      const { data, error } = await query;
+      if (error) {
+        toast.error(error.message);
+        return [] as Post[];
+      }
+      return (data ?? []) as Post[];
+    },
+    [],
+  );
 
   // Record a page view (fire-and-forget, client-side only).
   useEffect(() => {
@@ -70,16 +79,39 @@ function Home() {
     });
   }, []);
 
+  // Live breaking-news ticker text.
   useEffect(() => {
     let cancelled = false;
+    void supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "ticker_text")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data?.value) setTicker(data.value);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     (async () => {
-      const first = await loadPage(0);
+      const first = await loadPage(0, activeCategory);
       if (cancelled) return;
       setPosts(first);
       setHasMore(first.length === PAGE_SIZE);
       setLoading(false);
     })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadPage, activeCategory]);
 
+  useEffect(() => {
+    let cancelled = false;
 
     async function checkAdmin(s: Session | null) {
       const userId = s?.user.id ?? null;
@@ -107,7 +139,7 @@ function Home() {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [loadPage]);
+  }, []);
 
   async function handleLoadMore() {
     if (loadingMore || !hasMore) return;
