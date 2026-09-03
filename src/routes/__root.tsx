@@ -89,14 +89,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AYTA NEWS — عيتا نيوز" },
-      { name: "description", content: "عيتا نيوز — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
-      { property: "og:title", content: "AYTA NEWS — عيتا نيوز" },
-      { property: "og:description", content: "عيتا نيوز — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
+      { title: "درع الخبر | الموقع الإخباري" },
+      { name: "description", content: "درع الخبر — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
+      { property: "og:title", content: "درع الخبر" },
+      { property: "og:description", content: "درع الخبر — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "AYTA NEWS — عيتا نيوز" },
-      { name: "twitter:description", content: "عيتا نيوز — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
+      { name: "twitter:title", content: "درع الخبر" },
+      { name: "twitter:description", content: "درع الخبر — آخر الأخبار والتطورات المحلية والعالمية على مدار الساعة." },
     ],
     scripts: [
       {
@@ -110,6 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
   shellComponent: RootShell,
