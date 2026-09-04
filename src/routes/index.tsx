@@ -144,7 +144,7 @@ function Home() {
   async function handleLoadMore() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
-    const next = await loadPage(posts.length);
+    const next = await loadPage(posts.length, activeCategory);
     setPosts((prev) => [...prev, ...next]);
     setHasMore(next.length === PAGE_SIZE);
     setLoadingMore(false);
@@ -173,7 +173,7 @@ function Home() {
       <div className="bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-1.5 text-xs font-semibold tracking-wide">
           <span className="rounded-sm bg-background/15 px-2 py-0.5 uppercase">عاجل</span>
-          <span className="opacity-90">تطورات محلية وعالمية على مدار الساعة</span>
+          <span className="opacity-90">{ticker}</span>
         </div>
       </div>
 
@@ -204,12 +204,27 @@ function Home() {
         </div>
         <nav className="border-t border-border">
           <div className="mx-auto flex max-w-5xl items-center gap-6 overflow-x-auto px-6 py-2 text-sm font-medium text-muted-foreground">
-            <span className="text-foreground">الرئيسية</span>
-            <span>محليات</span>
-            <span>اقتصاد</span>
-            <span>منوعات</span>
-            <span>رياضة</span>
-            <span>مقالات</span>
+            <button
+              type="button"
+              onClick={() => setActiveCategory(null)}
+              className={`whitespace-nowrap transition-colors hover:text-foreground ${
+                activeCategory === null ? "text-foreground font-bold" : ""
+              }`}
+            >
+              {ALL_LABEL}
+            </button>
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setActiveCategory(c)}
+                className={`whitespace-nowrap transition-colors hover:text-foreground ${
+                  activeCategory === c ? "text-foreground font-bold" : ""
+                }`}
+              >
+                {c}
+              </button>
+            ))}
             <span className="mr-auto flex items-center gap-1 text-xs">
               <Globe className="h-3.5 w-3.5" /> الموقع الإخباري
             </span>
