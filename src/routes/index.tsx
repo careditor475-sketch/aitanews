@@ -144,7 +144,7 @@ function Home() {
   async function handleLoadMore() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
-    const next = await loadPage(posts.length);
+    const next = await loadPage(posts.length, activeCategory);
     setPosts((prev) => [...prev, ...next]);
     setHasMore(next.length === PAGE_SIZE);
     setLoadingMore(false);
