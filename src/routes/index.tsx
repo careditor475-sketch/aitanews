@@ -173,7 +173,7 @@ function Home() {
       <div className="bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-1.5 text-xs font-semibold tracking-wide">
           <span className="rounded-sm bg-background/15 px-2 py-0.5 uppercase">عاجل</span>
-          <span className="opacity-90">تطورات محلية وعالمية على مدار الساعة</span>
+          <span className="opacity-90">{ticker}</span>
         </div>
       </div>
 
